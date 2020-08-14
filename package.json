@@ -1,0 +1,20 @@
+{
+  "name": "rapid-response-survey",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test",
+    "type": "module"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ImmigrationPolicyLab/rapidresponsesurvey.git"
+  },
+  "author": "IPL",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ImmigrationPolicyLab/rapidresponsesurvey/issues"
+  },
+  "homepage": "https://github.com/ImmigrationPolicyLab/rapidresponsesurvey#readme"
+}
