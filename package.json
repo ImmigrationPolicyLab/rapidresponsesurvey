@@ -19,5 +19,8 @@
   "homepage": "https://github.com/ImmigrationPolicyLab/rapidresponsesurvey#readme",
   "devDependencies": {
     "eslint": "^7.7.0"
+  },
+  "dependencies": {
+    "gitignore": "^0.6.0"
   }
 }
