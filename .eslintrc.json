@@ -1,0 +1,40 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es2020": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 11
+    },
+    "rules": {
+        "prefer-destructuring": "off",
+        "quotes": "off",
+        "arrow-body-style": ["error", "always"],
+        "brace-style": ["error", "1tbs"],
+        "implicit-arrow-linebreak": "off",
+        "arrow-parens": ["error", "always"],
+        "import/prefer-default-export": "off",
+        "class-methods-use-this": "warn",
+        "max-len": ["warn", 120],
+        "no-useless-constructor": "off",
+        "no-underscore-dangle": ["error", { "allow": ["_embedded", "_links"] }],
+        "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+        "prefer-rest-params": "off",
+        "array-callback-return": ["error", { "allowImplicit": true }],
+        "import/no-unresolved": "off",
+        "no-param-reassign": "warn",
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "LabeledStatement",
+            "message": "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand."
+          },
+          {
+            "selector": "WithStatement",
+            "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize."
+          }
+        ]
+      }
+}

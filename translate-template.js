@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-class TemplateTranslation {
+class TwilioFlowTranslation {
   constructor(parentTemplatePath, prevVersion, version) {
       this.parentTemplatePath = parentTemplatePath,
       this.prevVersion = prevVersion,
@@ -9,12 +9,12 @@ class TemplateTranslation {
       this.languages = ["EN", "ES-US", "FR", "AR", "Farsi", "RU", "Swahili"]
   }
 
-  async generateUpdatedTemplates() {
+  async generateUpdatedTemplates(dictionaryPath, description, filePrefix, folderDestination) {
     try {
-      await this.makeDirectory();
-      await this.createUpdatedDictionary();
+      await this.makeDirectory(folderDestination);
+      // await this.createUpdatedDictionary();
       const languageTemplates = this.languages.map((language) => {
-        return this.createNewTemplate(language);
+        return this.createNewTemplate(language, dictionaryPath, filePrefix, folderDestination);
       });
 
       await Promise.all(languageTemplates);
@@ -48,13 +48,14 @@ class TemplateTranslation {
       }
     });
 
-    return fs.writeFile(`./${this.version}/template-dictionary-${this.version}.json`, JSON.stringify(dictionary), (error) => {
+    const file = `./${this.version}/template-dictionary-${this.version}.json`
+    return fs.writeFile(file, JSON.stringify(dictionary), (error) => {
       console.error(error);
       return error;
     });
   }
 
-  async createNewDictionaryFromTemplate(title, filename) {
+  async createNewDictionaryFromTemplate(title, filename, fileDestination) {
     // await this.makeDirectory();
     const template = await this.readFile(this.parentTemplatePath);
     const dictionary = {
@@ -77,16 +78,16 @@ class TemplateTranslation {
       }
     });
 
-    return fs.writeFile(`./${filename}-dictionary-1.0.json`, JSON.stringify(dictionary), (error) => {
+    return fs.writeFile(`${fileDestination}/${filename}-dictionary-1.0.json`, JSON.stringify(dictionary), (error) => {
       console.error(error);
       return error;
     });
   }
 
-  async createNewTemplate(language) {
-    const template = await this.readFile("./master-template.json");
+  async createNewTemplate(language, dictionaryPath, filePrefix, folderDestination) {
+    const template = await this.readFile(this.parentTemplatePath);
     const translateTemplate = { ...template };
-    const dictionary = await this.readFile(`./${this.version}/template-dictionary-${this.version}.json`);
+    const dictionary = await this.readFile(dictionaryPath);
     translateTemplate.states.forEach((state) => {
       if (state.properties && state.properties.body) {
         if(state.name.includes("error")) {
@@ -97,8 +98,9 @@ class TemplateTranslation {
         }
       }
     })
-    return fs.writeFile(`./${this.version}/survey-${language}-${this.version}.json`, JSON.stringify(translateTemplate), (error) => {
-      console.error(error);
+    const file = `${folderDestination}/${filePrefix}-flow-${language}.json`;
+    return fs.writeFile(file, JSON.stringify(translateTemplate), (error) => {
+      console.error("error trying to write", error);
       return error;
     });
   }
@@ -118,7 +120,7 @@ class TemplateTranslation {
 
   async makeDirectory(directory) {
     return new Promise((resolve, reject) => {
-      fs.mkdir(this.version, (error) => {
+      fs.mkdir(directory || this.version, (error) => {
         if (error) {
           console.error("Error making directory: ", directory);
           reject(error);
@@ -163,7 +165,7 @@ class TemplateTranslation {
   }
 }
 
-module.exports = { TemplateTranslation };
+module.exports = { TwilioFlowTranslation };
 
 // Use the previous version and the current version
 // const translation = new TemplateTranslation(null, "1.0");

@@ -9,6 +9,9 @@ Example: `node create-new-dictionary.js "./parent-templates/master-template.json
 
 ### Complete a Twilio template dictionary
 
+`node create-new-dictionary.js "[path to parent template]" "[path to dictionary]" "[flow file prefix]" "[flow description]" "[folder to store translated flows]"`
+
+Example: `node create-flow-translations.js "./parent-flow/LIRS_test_Aug17_updatedfxn.json" "./dictionaries/LIRS-dictionary-test-Aug17-dictionary-1.0.json" "test-flow-1.0" "Test flow" "./test-folder"`
 
 ### Generate Twilio template translations given a dictionary and associated parent template
 
