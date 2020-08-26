@@ -2,24 +2,35 @@ const fs = require("fs");
 
 class TwilioFlowTranslation {
   constructor(parentTemplatePath, prevVersion, version) {
-      this.parentTemplatePath = parentTemplatePath,
-      this.prevVersion = prevVersion,
-      this.version = version,
-      this.masterLang = "EN",
-      this.languages = ["EN", "ES-US", "FR", "AR", "Farsi", "RU", "Swahili"]
+    (this.parentTemplatePath = parentTemplatePath),
+      (this.prevVersion = prevVersion),
+      (this.version = version),
+      (this.masterLang = "EN"),
+      (this.languages = ["EN", "ES-US", "FR", "AR", "Farsi", "RU", "Swahili"]);
   }
 
-  async generateUpdatedTemplates(dictionaryPath, description, filePrefix, folderDestination) {
+  async generateFlows(
+    dictionaryPath,
+    description,
+    filePrefix,
+    folderDestination
+  ) {
     try {
       await this.makeDirectory(folderDestination);
       // await this.createUpdatedDictionary();
-      const languageTemplates = this.languages.map((language) => {
-        return this.createNewTemplate(language, dictionaryPath, filePrefix, folderDestination);
+      const languageFlows = this.languages.map((language) => {
+        return this.createNewFlow(
+          language,
+          dictionaryPath,
+          filePrefix,
+          folderDestination
+        );
       });
 
-      await Promise.all(languageTemplates);
+      await Promise.all(languageFlows);
+      console.log(`Successfully created translated flows from dictionary ${dictionaryPath}!`);
     } catch (error) {
-      console.error("Something went wrong creates templates: ", error);
+      console.error("Something went wrong attempting to create translated flows: ", error);
     }
   }
 
@@ -28,18 +39,24 @@ class TwilioFlowTranslation {
     console.warn("template", Object.keys(template));
     // const masterDictionary = await this.readFile(`./master-dictionary.json`);
     let originalDictionary;
-    if(this.prevVersion) {
-      originalDictionary = await this.readFile(`${this.prevVersion}/template-dictionary-${this.prevVersion}.json`);
+    if (this.prevVersion) {
+      originalDictionary = await this.readFile(
+        `${this.prevVersion}/template-dictionary-${this.prevVersion}.json`
+      );
     } else {
       originalDictionary = await this.readFile(`./master-dictionary.json`);
     }
     const dictionary = { ...originalDictionary };
-    template.states.forEach((state) => {
-      if (!dictionary[state.name] && state.properties && state.properties.body) {
+    template.states.forEach(state => {
+      if (
+        !dictionary[state.name] &&
+        state.properties &&
+        state.properties.body
+      ) {
         console.log("Found new entry: ", state.name);
         const entry = this.createDictionaryEntry(state);
-        if((state.name).includes("error")) {
-          if(!dictionary.error) {
+        if (state.name.includes("error")) {
+          if (!dictionary.error) {
             dictionary.error = entry;
           }
         } else {
@@ -48,60 +65,111 @@ class TwilioFlowTranslation {
       }
     });
 
-    const file = `./${this.version}/template-dictionary-${this.version}.json`
-    return fs.writeFile(file, JSON.stringify(dictionary), (error) => {
+    const file = `./${this.version}/template-dictionary-${this.version}.json`;
+    return fs.writeFile(file, JSON.stringify(dictionary), error => {
       console.error(error);
       return error;
     });
   }
 
   async createNewDictionaryFromTemplate(title, filename, fileDestination) {
-    // await this.makeDirectory();
-    const template = await this.readFile(this.parentTemplatePath);
-    const dictionary = {
-      title,
-      filename,
-      version: this.version,
-      date: new Date(),
-    };
+    try {
+      const template = await this.readFile(this.parentTemplatePath);
+      const dictionary = {
+        title,
+        filename,
+        version: this.version,
+        date: new Date()
+      };
 
-    template.states.forEach((state) => {
-      if (!dictionary[state.name] && state.properties && state.properties.body) {
-        const entry = this.createDictionaryEntry(state);
-        if((state.name).includes("error")) {
-          if(!dictionary.error) {
-            dictionary.error = entry;
+      template.states.forEach((state) => {
+        if (
+          !dictionary[state.name] &&
+          state.properties &&
+          state.properties.body
+        ) {
+          const entry = this.createDictionaryEntry(state);
+          if (state.name.includes("error")) {
+            if (!dictionary.error) {
+              dictionary.error = entry;
+            }
+          } else if(state.name.includes("help")) {
+            if (!dictionary.help) {
+              dictionary.help = entry;
+            }
+          } else {
+            dictionary[state.name] = entry;
           }
-        } else {
-          dictionary[state.name] = entry;
         }
-      }
-    });
+      });
 
-    return fs.writeFile(`${fileDestination}/${filename}-dictionary-1.0.json`, JSON.stringify(dictionary), (error) => {
-      console.error(error);
-      return error;
-    });
+      console.log("created dictionary");
+
+      await this.writeFile(
+        `${fileDestination}/${filename}-dictionary-1.0.json`,
+        JSON.stringify(dictionary)
+      );
+      console.log("Successfully created dictionary");
+    } catch (error) {
+      console.error("Something went wrong when attempt to create dictionary");
+    }
   }
 
-  async createNewTemplate(language, dictionaryPath, filePrefix, folderDestination) {
+  // TODO: finalize validation for dictionary
+  static validateParsedDictionary (dictionary) {
+    // assume dictionary is already parsed
+    for(const field in dictionary) { // loop through questions
+      if(field.dictionary) {
+        for(const lang in field.dictionary) { // loop through languages
+          for(const textField in field.dictionary[lang]) { // loop through text fields
+            if(field.dictionary[lang][textField].length === 0) {
+              console.error(`Found no translationg for widget: ${field}, language: ${lang}, property: ${textField}.`);
+              throw new Error(`Dictionary is not complete. Please fill in any empty fields and try again`);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  async createNewFlow(
+    language,
+    dictionaryPath,
+    filePrefix,
+    folderDestination
+  ) {
     const template = await this.readFile(this.parentTemplatePath);
     const translateTemplate = { ...template };
     const dictionary = await this.readFile(dictionaryPath);
-    translateTemplate.states.forEach((state) => {
+    translateTemplate.states.forEach(state => {
       if (state.properties && state.properties.body) {
-        if(state.name.includes("error")) {
+        if (state.name.includes("error")) {
           state.properties.body = dictionary.error.dictionary[language].text;
+        } else if(state.name.includes("help")) {
+          state.properties.body = dictionary.help.dictionary[language].text;
         } else {
-          const text = Object.values(dictionary[state.name].dictionary[language]).join("\n");
+          const text = Object.values(
+            dictionary[state.name].dictionary[language]
+          ).join("\n");
           state.properties.body = text;
         }
       }
-    })
+    });
     const file = `${folderDestination}/${filePrefix}-flow-${language}.json`;
-    return fs.writeFile(file, JSON.stringify(translateTemplate), (error) => {
-      console.error("error trying to write", error);
-      return error;
+    return this.writeFile(file, JSON.stringify(translateTemplate));
+  }
+
+  writeFile(path, data) {
+    console.log("path", path);
+    return new Promise((resolve, reject) => {
+      return fs.writeFile(path, data, (error) => {
+        if(error) {
+          console.error("Error writing file: ", path);
+          reject(error);
+        } else {
+          resolve();
+        }
+      })
     });
   }
 
@@ -112,10 +180,9 @@ class TwilioFlowTranslation {
           console.error("Error reading in file: ", path);
           reject(error);
         }
-        // console.log("states", JSON.parse(data).states[0]);
         resolve(JSON.parse(data));
-      })
-    })
+      });
+    });
   }
 
   async makeDirectory(directory) {
@@ -126,17 +193,18 @@ class TwilioFlowTranslation {
           reject(error);
         }
         resolve();
-      })
-    })
+      });
+    });
   }
 
   createDictionaryEntry(templateState) {
     const dictionaryEntry = {
       type: templateState.type,
-      dictionary: {},
-    }
+      dictionary: {}
+    };
 
-    const bodyParts = templateState.properties && templateState.properties.body.split("\n");
+    const bodyParts =
+      templateState.properties && templateState.properties.body.split("\n");
 
     // dictionaryEntry.dictionary[this.masterLang] = templateState.properties && templateState.properties.body;
 
@@ -145,17 +213,16 @@ class TwilioFlowTranslation {
 
       bodyParts.forEach((subString, i) => {
         if (i === 0) {
-          if(language === this.masterLang) {
-            dictionaryEntry.dictionary[language].text = subString
+          if (language === this.masterLang) {
+            dictionaryEntry.dictionary[language].text = subString;
           } else {
-            dictionaryEntry.dictionary[language].text = " "
+            dictionaryEntry.dictionary[language].text = " ";
           }
         } else {
           if (language === this.masterLang) {
             dictionaryEntry.dictionary[language][`option-${i}`] = subString;
           } else {
             dictionaryEntry.dictionary[language][`option-${i}`] = " ";
-            // console.log(dictionaryEntry.dictionary[language]);
           }
         }
       });
@@ -166,8 +233,3 @@ class TwilioFlowTranslation {
 }
 
 module.exports = { TwilioFlowTranslation };
-
-// Use the previous version and the current version
-// const translation = new TemplateTranslation(null, "1.0");
-// translation.generateUpdatedTemplates();
-// translation.generateUpdatedTemplates();
