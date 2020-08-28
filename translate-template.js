@@ -34,7 +34,7 @@ class TwilioFlowTranslation {
     }
   }
 
-  async createUpdatedDictionary(parentFlowPath, originalDictionaryPath, newDictionaryFile) {
+  async createUpdatedDictionary(parentFlowPath, originalDictionaryPath, fileDestination, fileName) {
     const parentFlow = await this.readFile(parentFlowPath);
     const originalDictionary = await this.readFile(originalDictionaryPath);
 
@@ -42,7 +42,7 @@ class TwilioFlowTranslation {
     parentFlow.states.forEach((state) => {
       if (!dictionary[state.name] && state.properties && state.properties.body) {
         // Create new entry for any widget that is not help or error
-        if(! (state.name.includes("error") || state.name.includes("help")) ) {
+        if (!(state.name.includes("error") || state.name.includes("help"))) {
           console.log("Found new entry in dictionary: ", state.name);
           const entry = this.createDictionaryEntry(state);
           dictionary[state.name] = entry;
@@ -50,11 +50,13 @@ class TwilioFlowTranslation {
       }
     });
 
-    const file = `${newDictionaryFile}.json`;
-    return fs.writeFile(file, JSON.stringify(dictionary), (error) => {
-      console.error("Failed to create updated dictionary", error);
-      return error;
-    });
+    try {
+      const file = `${fileDestination}/${fileName}.json`;
+      await this.writeFile(file, JSON.stringify(dictionary));
+      console.log("Successfully created dictionary");
+    } catch (error) {
+      console.error("Something went wrong when attempt to create dictionary");
+    }
   }
 
   async createNewDictionaryFromTemplate(title, filename, fileDestination) {
@@ -78,7 +80,7 @@ class TwilioFlowTranslation {
             if (!dictionary.error) {
               dictionary.error = entry;
             }
-          } else if(state.name.includes("help")) {
+          } else if (state.name.includes("help")) {
             if (!dictionary.help) {
               dictionary.help = entry;
             }
@@ -101,13 +103,13 @@ class TwilioFlowTranslation {
   }
 
   // TODO: finalize validation for dictionary
-  static validateParsedDictionary (dictionary) {
+  static validateParsedDictionary(dictionary) {
     // assume dictionary is already parsed
-    for(const field in dictionary) { // loop through questions
-      if(field.dictionary) {
-        for(const lang in field.dictionary) { // loop through languages
-          for(const textField in field.dictionary[lang]) { // loop through text fields
-            if(field.dictionary[lang][textField].length <= 1) {
+    for (const field in dictionary) { // loop through questions
+      if (field.dictionary) {
+        for (const lang in field.dictionary) { // loop through languages
+          for (const textField in field.dictionary[lang]) { // loop through text fields
+            if (field.dictionary[lang][textField].length <= 1) {
               console.error(`Found no translation for widget: ${field}, language: ${lang}, property: ${textField}.`);
               throw new Error(`Dictionary is not complete. Please ensure all fields have valid translations and try again.`);
             }
@@ -130,7 +132,7 @@ class TwilioFlowTranslation {
       if (state.properties && state.properties.body) {
         if (state.name.includes("error")) {
           state.properties.body = dictionary.error.dictionary[language].text;
-        } else if(state.name.includes("help")) {
+        } else if (state.name.includes("help")) {
           state.properties.body = dictionary.help.dictionary[language].text;
         } else {
           const text = Object.values(
@@ -148,7 +150,7 @@ class TwilioFlowTranslation {
     console.log("path", path);
     return new Promise((resolve, reject) => {
       return fs.writeFile(path, data, (error) => {
-        if(error) {
+        if (error) {
           console.error("Error writing file: ", path);
           reject(error);
         } else {
