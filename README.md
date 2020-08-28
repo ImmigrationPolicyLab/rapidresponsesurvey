@@ -17,4 +17,6 @@ Translate the questions for the survey based on the translations added to the di
 
 Example: `node create-flow-translations.js ../parent-flow/LIRS_test_Aug17_updatedfxn.json ../Dictionaries/new-test-dictionary-dictionary-1.0.json test-flow-08-22 "my new flow" ../directory-for-flows`
 
+### Updating a dictionary with new question fields
+
 ### Upload your Twilio flow translations to Twilio

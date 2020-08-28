@@ -34,40 +34,25 @@ class TwilioFlowTranslation {
     }
   }
 
-  async createUpdatedDictionary() {
-    const template = await this.readFile(`master-template.json`);
-    console.warn("template", Object.keys(template));
-    // const masterDictionary = await this.readFile(`./master-dictionary.json`);
-    let originalDictionary;
-    if (this.prevVersion) {
-      originalDictionary = await this.readFile(
-        `${this.prevVersion}/template-dictionary-${this.prevVersion}.json`
-      );
-    } else {
-      originalDictionary = await this.readFile(`./master-dictionary.json`);
-    }
+  async createUpdatedDictionary(parentFlowPath, originalDictionaryPath, newDictionaryFile) {
+    const parentFlow = await this.readFile(parentFlowPath);
+    const originalDictionary = await this.readFile(originalDictionaryPath);
+
     const dictionary = { ...originalDictionary };
-    template.states.forEach(state => {
-      if (
-        !dictionary[state.name] &&
-        state.properties &&
-        state.properties.body
-      ) {
-        console.log("Found new entry: ", state.name);
-        const entry = this.createDictionaryEntry(state);
-        if (state.name.includes("error")) {
-          if (!dictionary.error) {
-            dictionary.error = entry;
-          }
-        } else {
+    parentFlow.states.forEach((state) => {
+      if (!dictionary[state.name] && state.properties && state.properties.body) {
+        // Create new entry for any widget that is not help or error
+        if(! (state.name.includes("error") || state.name.includes("help")) ) {
+          console.log("Found new entry in dictionary: ", state.name);
+          const entry = this.createDictionaryEntry(state);
           dictionary[state.name] = entry;
         }
       }
     });
 
-    const file = `./${this.version}/template-dictionary-${this.version}.json`;
-    return fs.writeFile(file, JSON.stringify(dictionary), error => {
-      console.error(error);
+    const file = `${newDictionaryFile}.json`;
+    return fs.writeFile(file, JSON.stringify(dictionary), (error) => {
+      console.error("Failed to create updated dictionary", error);
       return error;
     });
   }
@@ -122,9 +107,9 @@ class TwilioFlowTranslation {
       if(field.dictionary) {
         for(const lang in field.dictionary) { // loop through languages
           for(const textField in field.dictionary[lang]) { // loop through text fields
-            if(field.dictionary[lang][textField].length === 0) {
-              console.error(`Found no translationg for widget: ${field}, language: ${lang}, property: ${textField}.`);
-              throw new Error(`Dictionary is not complete. Please fill in any empty fields and try again`);
+            if(field.dictionary[lang][textField].length <= 1) {
+              console.error(`Found no translation for widget: ${field}, language: ${lang}, property: ${textField}.`);
+              throw new Error(`Dictionary is not complete. Please ensure all fields have valid translations and try again.`);
             }
           }
         }
