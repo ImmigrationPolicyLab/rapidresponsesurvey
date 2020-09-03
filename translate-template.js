@@ -1,13 +1,12 @@
 const fs = require("fs");
-const { isError } = require("util");
 
 class TwilioFlowTranslation {
   constructor(parentTemplatePath, prevVersion, version) {
-    (this.parentTemplatePath = parentTemplatePath),
-      (this.prevVersion = prevVersion),
-      (this.version = version),
-      (this.masterLang = "EN"),
-      (this.languages = ["EN", "ES-US", "FR", "AR", "Farsi", "RU", "Swahili"]);
+    this.parentTemplatePath = parentTemplatePath,
+      this.prevVersion = prevVersion,
+      this.version = version,
+      this.masterLang = "EN",
+      this.languages = ["EN", "ES-US", "FR", "AR", "Farsi", "RU", "Swahili"];
   }
 
   async generateFlows(
@@ -24,6 +23,7 @@ class TwilioFlowTranslation {
           language,
           dictionaryPath,
           filePrefix,
+          description,
           folderDestination
         );
       });
@@ -91,15 +91,13 @@ class TwilioFlowTranslation {
         }
       });
 
-      console.log("created dictionary");
-
       await this.writeFile(
         `${fileDestination}/${filename}-dictionary-1.0.json`,
         JSON.stringify(dictionary)
       );
-      console.log("Successfully created dictionary");
+      console.log("Successfully created dictionary!");
     } catch (error) {
-      console.error("Something went wrong when attempt to create dictionary");
+      console.error("Something went wrong when attempt to create dictionary.");
     }
   }
 
@@ -124,11 +122,13 @@ class TwilioFlowTranslation {
     language,
     dictionaryPath,
     filePrefix,
+    description,
     folderDestination
   ) {
     const template = await this.readFile(this.parentTemplatePath);
     const translateTemplate = { ...template };
     const dictionary = await this.readFile(dictionaryPath);
+    translateTemplate.description = `${description}, Langauge: ${language}`
     translateTemplate.states.forEach((state) => {
       const { name, properties } = state;
 
@@ -160,7 +160,6 @@ class TwilioFlowTranslation {
             throw new Error("Dictionary does not have help key")
           }
 
-          console.log("name", name, dictionary.help);
           state.properties.body = dictionary.help.dictionary[language].text;
         } else {
           if (isValidState) {
@@ -169,7 +168,7 @@ class TwilioFlowTranslation {
             ).join("\n");
             state.properties.body = text;
           } else {
-            console.warn(`Could not find translation in diction for question: ${state.name}`)
+            console.warn(`Could not find translation in dictionary for question: ${state.name}`)
           }
         }
       }
@@ -179,7 +178,7 @@ class TwilioFlowTranslation {
   }
 
   writeFile(path, data) {
-    console.log("path", path);
+    console.log("Writing new file at: ", path);
     return new Promise((resolve, reject) => {
       return fs.writeFile(path, data, (error) => {
         if (error) {
