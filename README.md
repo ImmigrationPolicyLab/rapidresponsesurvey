@@ -35,3 +35,17 @@ What needs to be provided to run this logic in the terminal and create the new d
 Example: `node create-updated-dictionary.js ../parent-flow/LIRS_test_Aug17_updatedfxn.json ../Dictionaries/LIRS-dictionary-test-Aug17-dictionary-1.0.json ../Dictionaries/ updated-dictionary`
 
 ### Upload your Twilio flow translations to Twilio
+
+
+### Mimic API calls to test throttling
+
+Example:
+1. Create a file named`.env` at the root level
+2. Enter in you google credentials into the .env file as:
+    `CLIENT_EMAIL=twiliotest@tet.gserviceaccount.com`
+    `PRIVATE_KEY=xxx`
+
+3. Update the number of calls in the `mock-twilio-handler-events.js` file.
+4. Run `node mock-twilio-handler-events.js` in terminal.
+
+Errors that show on you console or terminal reflect google api errors.
