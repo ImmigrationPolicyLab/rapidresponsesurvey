@@ -2,11 +2,11 @@ const fs = require("fs");
 
 class TwilioFlowTranslation {
   constructor(parentTemplatePath, prevVersion, version) {
-    (this.parentTemplatePath = parentTemplatePath),
-      (this.prevVersion = prevVersion),
-      (this.version = version),
-      (this.masterLang = "EN"),
-      (this.languages = ["EN", "ES-US", "FR", "AR", "Farsi", "RU", "Swahili"]);
+    this.parentTemplatePath = parentTemplatePath,
+      this.prevVersion = prevVersion,
+      this.version = version,
+      this.masterLang = "EN",
+      this.languages = ["EN", "ES-US", "FR", "AR", "Farsi", "RU", "Swahili"];
   }
 
   async generateFlows(
@@ -23,6 +23,7 @@ class TwilioFlowTranslation {
           language,
           dictionaryPath,
           filePrefix,
+          description,
           folderDestination
         );
       });
@@ -90,15 +91,13 @@ class TwilioFlowTranslation {
         }
       });
 
-      console.log("created dictionary");
-
       await this.writeFile(
         `${fileDestination}/${filename}-dictionary-1.0.json`,
         JSON.stringify(dictionary)
       );
-      console.log("Successfully created dictionary");
+      console.log("Successfully created dictionary!");
     } catch (error) {
-      console.error("Something went wrong when attempt to create dictionary");
+      console.error("Something went wrong when attempt to create dictionary.");
     }
   }
 
@@ -123,22 +122,54 @@ class TwilioFlowTranslation {
     language,
     dictionaryPath,
     filePrefix,
+    description,
     folderDestination
   ) {
     const template = await this.readFile(this.parentTemplatePath);
     const translateTemplate = { ...template };
     const dictionary = await this.readFile(dictionaryPath);
-    translateTemplate.states.forEach(state => {
-      if (state.properties && state.properties.body) {
-        if (state.name.includes("error")) {
+    translateTemplate.description = `${description}, Langauge: ${language}`
+    translateTemplate.states.forEach((state) => {
+      const { name, properties } = state;
+
+      if (properties && properties.body) {
+
+        const isHelpState = name.includes("help");
+        const isErrorState = name.includes("error");
+
+        const isValidState = dictionary[name]
+          && dictionary[name].dictionary
+          && dictionary[name].dictionary[language];
+
+        if (!isValidState && !isHelpState && !isErrorState) {
+          throw new Error(
+            `Could not find state ${name} in dictionary. Please check that the correct dictionary was provided.`
+          );
+        }
+
+        if (isErrorState) {
+
+          if(!dictionary.error) {
+            throw new Error("Dictionary does not have error key")
+          }
+
           state.properties.body = dictionary.error.dictionary[language].text;
-        } else if (state.name.includes("help")) {
+        } else if (isHelpState) {
+
+          if(!dictionary.help) {
+            throw new Error("Dictionary does not have help key")
+          }
+
           state.properties.body = dictionary.help.dictionary[language].text;
         } else {
-          const text = Object.values(
-            dictionary[state.name].dictionary[language]
-          ).join("\n");
-          state.properties.body = text;
+          if (isValidState) {
+            const text = Object.values(
+              dictionary[name].dictionary[language]
+            ).join("\n");
+            state.properties.body = text;
+          } else {
+            console.warn(`Could not find translation in dictionary for question: ${state.name}`)
+          }
         }
       }
     });
@@ -147,7 +178,7 @@ class TwilioFlowTranslation {
   }
 
   writeFile(path, data) {
-    console.log("path", path);
+    console.log("Writing new file at: ", path);
     return new Promise((resolve, reject) => {
       return fs.writeFile(path, data, (error) => {
         if (error) {
