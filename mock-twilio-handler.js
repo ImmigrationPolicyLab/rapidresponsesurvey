@@ -20,13 +20,6 @@ var scopes = [
   "https://www.googleapis.com/auth/gmail.compose"
 ];
 
-var jwtClient = new google.auth.JWT(
-  c_email,
-  null,
-  private_key,
-  scopes
-);
-
 const context = {
   sheetId,
   c_email
@@ -180,7 +173,7 @@ function handler(context, event) {
       } else {
         var accessToken = tokens.access_token;
         return getAndAppendSheetData(accessToken, context, event)
-          .then((result) => {
+          .then(() => {
             console.log("Success");
             // callback(null, null);
           })
@@ -191,9 +184,9 @@ function handler(context, event) {
       }
     })
   } catch (error) {
-    console.log("recieved error when trying to get token", error);
+    console.log("Recieved error when trying to get token", error);
     // callback(null, error);
   }
 }
 
-module.export = { handler, context };
+module.exports = { handler, context };

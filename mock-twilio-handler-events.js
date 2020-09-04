@@ -1,4 +1,6 @@
-const { handler, context } = require("./batch-test.js");
+const { handler, context } = require("./mock-twilio-handler.js");
+
+console.log("test");
 
 // Send batch requests to Google Sheet
 const testBatch = (n) => {
@@ -12,7 +14,6 @@ const testBatch = (n) => {
     const promArr = [];
     // Create n requests to write to the Google Sheet
     for (let i = 0; i < n; i++) {
-        // console.log("number", i);
         event.q1 = `${i}`;
         promArr.push(handler(context, { ...event }, null));
     }
@@ -23,4 +24,7 @@ const testBatch = (n) => {
     }
 }
 
-testBatch(1);
+// Update the number of request to google sheets here
+// You will likely see errors at more than 50 requests, since all initial requests are fired together
+const numberOfRequests = 100;
+testBatch(numberOfRequests);
