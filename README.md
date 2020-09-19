@@ -40,7 +40,7 @@ Example: `node create-updated-dictionary.js ../parent-flow/LIRS_test_Aug17_updat
 ### Mimic API calls to test throttling
 
 Example:
-1. Create a file named`.env` at the root level
+1. Create a file named`.env` at the root level (your project )
 2. Enter in you google credentials into the .env file as:
     `CLIENT_EMAIL=twiliotest@tet.gserviceaccount.com`
     `PRIVATE_KEY=xxx`

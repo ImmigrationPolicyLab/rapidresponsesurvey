@@ -1,4 +1,4 @@
-const { TwilioFlowTranslation }  = require("./translate-template.js");
+const { TwilioFlowTranslation }  = require("./src/translate-template.js");
 
 const parentFlow = process.argv[2];
 const originalDictionaryPath = process.argv[3];
