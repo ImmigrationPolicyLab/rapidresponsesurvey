@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-const { TwilioFlowTranslation } = require("../translate-template");
+const { TwilioFlowTranslation } = require("../src/translate-template");
 const { getMockFlow, getMockFlowWithNewEntry } = require("./mocks/parent-flow.mock");
 const getOriginalDictionary = require("./mocks/complete-dictionary.mock");
 const newDictionaryMock = require("./mocks/newDictionary.mock");
