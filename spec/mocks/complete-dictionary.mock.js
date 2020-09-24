@@ -1,7 +1,6 @@
 module.exports = () => {
     const dictionary = {
         "title": "Test dictionary",
-        "filename": "Test dictionary file name",
         "q1": {
             "type": "send-and-wait-for-reply",
             "dictionary": {

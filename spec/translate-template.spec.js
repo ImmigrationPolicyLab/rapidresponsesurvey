@@ -2,7 +2,7 @@
 const { TwilioFlowTranslation } = require("../src/translate-template");
 const { getMockFlow, getMockFlowWithNewEntry } = require("./mocks/parent-flow.mock");
 const getOriginalDictionary = require("./mocks/complete-dictionary.mock");
-const newDictionaryMock = require("./mocks/newDictionary.mock");
+const newDictionaryMock = require("./mocks/new-dictionary.mock.json");
 
 describe("test code", () => {
   let translationService;
@@ -14,17 +14,18 @@ describe("test code", () => {
   describe("createNewDictionaryFromTemplate", () => {
 
     it("Creates a new dictionary", () => {
-      const path = ".";
       const fileName = "file-name";
-      const destinationPath = `${path}/${fileName}-dictionary-1.0.json`;
+      const destinationPath = `./output/dictionaries/${fileName}-dictionary.json`;
       const mockParentFlow = getMockFlow();
+
       translationService.languages = ["EN", "ES_US", "FR"];
+      translationService.sourceLanguage = "EN";
       translationService.writeFile = jasmine.createSpy("writeFile").and.returnValue(Promise.resolve({}));
       translationService.readFile = jasmine.createSpy("readFile").and.returnValue(
-        Promise.resolve(mockParentFlow)
+        mockParentFlow,
       );
 
-      return translationService.createNewDictionaryFromTemplate("testTitle", fileName, path)
+      return translationService.createNewDictionaryFromTemplate("testTitle", fileName)
         .then(() => {
           expect(translationService.readFile).toHaveBeenCalledTimes(1);
           expect(translationService.writeFile).toHaveBeenCalledTimes(1);
@@ -34,25 +35,22 @@ describe("test code", () => {
         });
     });
 
-    it("", () => {
-
-    });
-
     it("Logs an error for user if something goes wrong", () => {
 
     });
   });
 
-  describe("createUpdatedDictionary", () => {
-    it("Adds new items to dictionary if new questions are found in flow", () => {
+  fdescribe("createUpdatedDictionary", () => {
+    it("Adds new items to dictionary if new questions are found using languages from original dictionary", () => {
       const path = ".";
       const fileName = "file-name";
       const destinationPath = `${path}/${fileName}-dictionary-1.0.json`;
       const { flow, newEntry } = getMockFlowWithNewEntry();
       const originalDictionary = getOriginalDictionary();
       const originalNumEntries = Object.keys(originalDictionary).length;
+      const title = "test title";
 
-      translationService.languages = ["EN", "ES_US", "FR"];
+      const expectedLangauges = ["EN", "ES-US", "FR"];
 
       const loggerSpy = spyOn(console, "log");
       translationService.writeFile = jasmine.createSpy("writeFile").and.returnValue(Promise.resolve({}));
@@ -61,16 +59,19 @@ describe("test code", () => {
         originalDictionary,
       );
 
-      return translationService.createUpdatedDictionary(".", ".", ".", fileName)
+      return translationService.createUpdatedDictionary(".", fileName, title)
         .then((dictionary) => {
           expect(translationService.readFile).toHaveBeenCalledTimes(2);
           expect(translationService.writeFile).toHaveBeenCalledTimes(1);
           expect(translationService.writeFile).not.toHaveBeenCalledWith(
             destinationPath, JSON.stringify(newDictionaryMock)
           );
+          expect(dictionary.title).toBe(title);
           const dictionaryKeys = Object.keys(dictionary);
           expect(dictionaryKeys.length).toEqual(originalNumEntries + 1);
+          console.log("dictionary keys", dictionaryKeys);
           expect(dictionary[newEntry]).toBeDefined();
+          expect(Object.keys(dictionary[newEntry].dictionary)).toEqual(expectedLangauges);
           expect(loggerSpy.calls.first().args).toEqual(
             [
               `Found the following new entries in dictionary: `,
@@ -95,14 +96,17 @@ describe("test code", () => {
         originalDictionary,
       );
 
-      return translationService.createUpdatedDictionary(".", ".", ".", fileName)
+      return translationService.createUpdatedDictionary(".", fileName, "test title")
         .then((dictionary) => {
           expect(translationService.readFile).toHaveBeenCalledTimes(2);
           expect(translationService.writeFile).not.toHaveBeenCalled();
           const dictionaryKeys = Object.keys(dictionary);
           expect(dictionaryKeys.length).toEqual(originalNumEntries);
           expect(loggerSpy).toHaveBeenCalled();
-        });
+        })
+        .catch((err) => {
+          fail(err);
+        })
     });
 
     it("Logs an error for user if something goes wrong reading files", () => {
@@ -125,9 +129,8 @@ describe("test code", () => {
     });
   });
 
-  fdescribe(("generateFlows()"), () => {
+  describe(("generateFlows()"), () => {
     it("Writes files for every lanugage provided with the correct file name", () => {
-      const fileName = "file-name";
       const description = "fake description";
       const flow = getMockFlow();
       const originalDictionary = getOriginalDictionary();
@@ -153,7 +156,7 @@ describe("test code", () => {
       return translationService.generateFlows(".", description, prefix, ".")
       .then(() => {
         expect(translationService.makeDirectory).toHaveBeenCalledTimes(1);
-        expect(translationService.makeDirectory).toHaveBeenCalledWith(prefix);
+        expect(translationService.makeDirectory).toHaveBeenCalledWith(`./output/flows/${prefix}`);
         expect(translationService.readFile).toHaveBeenCalledTimes(2);
         expect(TwilioFlowTranslation.createNewFlow).toHaveBeenCalledTimes(translationService.languages.length);
         expect(loggerSpy).toHaveBeenCalledTimes(1);
@@ -164,7 +167,6 @@ describe("test code", () => {
     })
 
     it("Logs an error if something goes wrong reading files", () => {
-      const error = new Error("test error");
       const description = "fake description";
       const prefix = "fake-prefix";
 
@@ -218,7 +220,7 @@ describe("test code", () => {
       return translationService.generateFlows(".", description, prefix, ".")
       .then(() => {
         expect(translationService.readFile).toHaveBeenCalledTimes(2);
-        expect(translationService.makeDirectory).not.toHaveBeenCalled();
+        expect(translationService.makeDirectory).toHaveBeenCalledTimes(1);
         expect(translationService.writeFile).not.toHaveBeenCalled();
 
         expect(TwilioFlowTranslation.createNewFlow).toHaveBeenCalled();
@@ -233,17 +235,12 @@ describe("test code", () => {
 
   });
 
-  xdescribe("createNewFlow", () => {
+  describe("createNewFlow", () => {
     it("Creates a new flow if all fields are translated", () => {
       const lang = "EN";
       const description = "description test";
       const flow = getMockFlow();
       const originalDictionary = getOriginalDictionary();
-
-      translationService.readFile = jasmine.createSpy("readFile").and.returnValues(
-        flow,
-        originalDictionary,
-      );
 
       const translatedFlow = TwilioFlowTranslation.createNewFlow(lang, originalDictionary, flow, description)
       expect(translatedFlow).toBeDefined();

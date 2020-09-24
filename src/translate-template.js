@@ -2,10 +2,10 @@
 const fs = require("fs");
 
 class TwilioFlowTranslation {
-  constructor(parentTemplatePath, languageList, sourceLanguage) {
+  constructor(parentTemplatePath, languageList, sourceLanguage = "EN") {
     this.parentTemplatePath = parentTemplatePath,
-      this.parentLang = sourceLanguage || "EN",
-      this.languages = languageList || ["EN", "ES-US", "FR", "AR", "Farsi", "RU", "Swahili"];
+      this.sourceLanguage = sourceLanguage,
+      this.languages = languageList;
   }
 
   async generateFlows(
@@ -30,7 +30,8 @@ class TwilioFlowTranslation {
       });
 
       await Promise.all(languageFlows);
-      console.log(`Successfully created translated flows from dictionary ${dictionaryPath}!`);
+      console.log(`Successfully created translated flows from dictionary ${dictionaryPath}! ` +
+      `Check the output/flows folder for the translated flows.`);
     } catch (error) {
       console.error("Something went wrong attempting to create translated flows: ", error);
     }
@@ -71,12 +72,16 @@ class TwilioFlowTranslation {
   }
 
 
-  async createUpdatedDictionary(parentFlowPath, originalDictionaryPath, fileDestination, fileName) {
+  async createUpdatedDictionary(originalDictionaryPath, fileName, title) {
     try {
-      const parentFlow = await this.readFile(parentFlowPath);
+      const parentFlow = await this.readFile(this.parentTemplatePath);
       const originalDictionary = await this.readFile(originalDictionaryPath);
 
+      // Set languages from dictionary
+      this.setLanguagesFromDictionary(originalDictionary);
       const dictionary = { ...originalDictionary };
+      dictionary.title = title;
+
       const newEntries = [];
       parentFlow.states.forEach((state) => {
         if (!dictionary[state.name] && state.properties.body) {
@@ -88,11 +93,11 @@ class TwilioFlowTranslation {
 
       if (newEntries.length) {
         console.log("Found the following new entries in dictionary: ", newEntries.join(", "));
-        const file = `${fileDestination}/${fileName}.json`;
+        const file = `./output/dictionaries/${fileName}-dictionary.json`;
         await this.writeFile(file, JSON.stringify(dictionary));
-        console.log("Successfully created dictionary");
+        console.log("Successfully created dictionary. Check the output/dictionary folder for the dictionary.");
       } else {
-        console.log("Did not find new entries for dictionary. Did create updated dictionary.");
+        console.log("Did not find new entries for dictionary. Did not create updated dictionary.");
       }
       return dictionary;
     } catch (error) {
@@ -100,13 +105,16 @@ class TwilioFlowTranslation {
     }
   }
 
-  async createNewDictionaryFromTemplate(title, filename, fileDestination) {
+  setLanguagesFromDictionary(dictionary) {
+    const entry = Object.keys(dictionary)[2];
+    this.languages = Object.keys(dictionary[entry].dictionary);
+  }
+
+  async createNewDictionaryFromTemplate(title, filename) {
     try {
       const template = await this.readFile(this.parentTemplatePath);
       const dictionary = {
         title,
-        filename,
-        version: this.version,
       };
       template.states.forEach((state) => {
         if (
@@ -120,10 +128,10 @@ class TwilioFlowTranslation {
       });
 
       await this.writeFile(
-        `${fileDestination}/${filename}-dictionary-1.0.json`,
+        `./output/dictionaries/${filename}-dictionary.json`,
         JSON.stringify(dictionary)
       );
-      console.log("Successfully created dictionary!");
+      console.log("Successfully created dictionary! Check the output/dictionary folder for the dictionary.");
     } catch (error) {
       console.error(`Something went wrong when attempt to create dictionary: ${error}`);
     }
@@ -197,7 +205,7 @@ class TwilioFlowTranslation {
             dictionaryEntry.dictionary[language].text = " ";
           }
         } else {
-          if (language === this.parentLang) {
+          if (language === this.sourceLanguage) {
             dictionaryEntry.dictionary[language][`option-${i}`] = subString;
           } else {
             dictionaryEntry.dictionary[language][`option-${i}`] = " ";

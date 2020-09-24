@@ -1,7 +1,5 @@
 {
     "title": "testTitle",
-    "filename": "file-name",
-    "version": null,
     "q1": {
         "type": "send-and-wait-for-reply",
         "dictionary": {
