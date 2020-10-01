@@ -7,9 +7,10 @@ const sheets = google.sheets('v4');
 
 const sheetId = "14vtJOe3FDPnI94Eo2sqElLhovLn3fO5jkHcCJ14g0cQ";
 const c_email = process.env.CLIENT_EMAIL;
-const key = process.env.PRIVATE_KEY.replace(/\\n/gm, "\n")
+const key = process.env.PRIVATE_KEY.replace(/\\n/gm, "\n");
 const private_key = `-----BEGIN PRIVATE KEY-----\n${key}\n-----END PRIVATE KEY-----\n`;
 
+console.log("")
 // Common problem with library: https://github.com/nodejs/node-gyp/issues/695
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
