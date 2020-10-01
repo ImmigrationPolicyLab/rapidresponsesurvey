@@ -1,6 +1,6 @@
 #!/bin/bash
 
-read -p 'Starting process to create updated dictionary '
+echo 'You have requested to create an updated Twilio Flow Dictionary.'
 echo 'You entered this path for the source flow: ' $1
 echo 'You entered this path for the existing dictionary: ' $2
 read -p 'Please provide a title to use when creating the updated dictionary: ' title

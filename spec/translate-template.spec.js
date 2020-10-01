@@ -40,7 +40,7 @@ describe("test code", () => {
     });
   });
 
-  fdescribe("createUpdatedDictionary", () => {
+  describe("createUpdatedDictionary", () => {
     it("Adds new items to dictionary if new questions are found using languages from original dictionary", () => {
       const path = ".";
       const fileName = "file-name";
@@ -137,7 +137,7 @@ describe("test code", () => {
 
       const prefix = "fake-prefix";
 
-      translationService.languages = ["EN", "ES_US", "FR"];
+      expectedLanguages = ["EN", "ES-US", "FR"];
 
       translationService.makeDirectory = jasmine.createSpy("makeDirectory").and.returnValue(Promise.resolve({}));
       translationService.writeFile = jasmine.createSpy("writeFile").and.returnValue(Promise.resolve({}));
@@ -157,6 +157,7 @@ describe("test code", () => {
       .then(() => {
         expect(translationService.makeDirectory).toHaveBeenCalledTimes(1);
         expect(translationService.makeDirectory).toHaveBeenCalledWith(`./output/flows/${prefix}`);
+        expect(translationService.languages).toEqual(expectedLanguages);
         expect(translationService.readFile).toHaveBeenCalledTimes(2);
         expect(TwilioFlowTranslation.createNewFlow).toHaveBeenCalledTimes(translationService.languages.length);
         expect(loggerSpy).toHaveBeenCalledTimes(1);

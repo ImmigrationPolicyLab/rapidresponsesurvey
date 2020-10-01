@@ -1,7 +1,7 @@
 #!/bin/bash
 # Demonstrate how read actually works
 
-read -p 'Starting process to create a new dictionary '
+echo 'Starting process to create a new Twilio Flow Dictionary.'
 echo 'You entered this path for the source flow: ' $1
 read -p 'Please provide a title to use when creating the dictionary: ' title
 read -p 'Please provide a file name for the dictionary you are creating: ' fileName

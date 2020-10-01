@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
 // The following code in tended to be run in the google console as a project script
 
+// eslint-disable-next-line no-unused-vars
 function batchSurveyLanguageSupport() {
   Logger.log("batchSurvey called");
   var ACCOUNT_SID = PropertiesService.getScriptProperties().getProperty("ACCOUNT_SID");
@@ -28,7 +28,6 @@ function batchSurveyLanguageSupport() {
   var nextBatchStartRow = findNextBatchStart(totalDataRange, values, sheet);
 
   var numCols = values[0].length; // Set the total number of columns
-  var endRow = nextBatchStartRow + batchSize; // Set the last row that will be evaluated as part of this batch
 
   // Iterate through numbers in batch and send a post request for numbers
   for (let r = 0; r <= batchSize; r++) {
@@ -97,6 +96,7 @@ function findNextBatchStart(totalDataRange, values, sheet) {
       sheet.getRange(batchCell).setValue("PreviousBatchStart");
       nextBatchStartRow = row;
     }
+    // eslint-disable-next-line no-plusplus
     row ++;
   }
   return nextBatchStartRow;
@@ -119,6 +119,7 @@ function handleEndOfBatch(nextBatchStartRow, batchSize, values, sheet, totalData
 
 
 // Function to automate sending batches of surveys
+// eslint-disable-next-line no-unused-vars
 function startSurveyBatchingWithLanguage() {
   Logger.log("startSurveyBatching called");
 

@@ -18,6 +18,8 @@ class TwilioFlowTranslation {
       const dictionary = await this.readFile(dictionaryPath);
       await this.makeDirectory(`./output/flows/${filePrefix}`);
 
+      this.setLanguagesFromDictionary(dictionary);
+
       const languageFlows = this.languages.map((language) => {
         const flow = TwilioFlowTranslation.createNewFlow(
           language,
