@@ -55,7 +55,7 @@ class TwilioFlowTranslation {
         if (!isValidState) {
           errors.push(`Could not find entry '${name}' in dictionary.`);
         } else if (!hasValidTranslation) {
-          errors.push(`Could not find ${language} translation for entry '${name}' in dictionary. `);
+          errors.push(`Could not find ${language} translation for entry '${name}' in dictionary.`);
         } else {
           // Validated dictionary entry, proceed with translation
           const body = Object.values(dictionary[name].dictionary[language]).join("\n");
@@ -65,7 +65,7 @@ class TwilioFlowTranslation {
     });
 
     if (errors.length) {
-      const errorMessage = errors.join(" ")
+      const errorMessage = errors.join("\n")
         .concat("Please check the dictionary provided for errors listed above and try again.");
       throw new Error(errorMessage);
     }
@@ -108,7 +108,10 @@ class TwilioFlowTranslation {
   }
 
   setLanguagesFromDictionary(dictionary) {
-    const entry = Object.keys(dictionary)[2];
+    let entry = Object.keys(dictionary)[2];
+    if (!(dictionary[entry] instanceof Object)) {
+      entry = Object.keys(dictionary)[3];
+    }
     this.languages = Object.keys(dictionary[entry].dictionary);
   }
 
