@@ -58,3 +58,5 @@ Example:
 4. Run `node mock-twilio-handler-events.js` in terminal.
 
 Errors that show on you console or terminal reflect google api errors.
+
+### Terminal Notes
