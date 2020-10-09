@@ -1,0 +1,1016 @@
+{
+  "description": "A New Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "awaymessage",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall"
+        },
+        {
+          "next": "q0",
+          "event": "incomingRequest"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 130,
+          "y": -480
+        }
+      }
+    },
+    {
+      "name": "q0",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "q0_split",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "survey_post",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 190,
+          "y": -270
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Hello! This is a test survey. Do you want to continue with the survey?\n1. Yes\n2. No",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "q0_split",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "q0_error1",
+          "event": "noMatch"
+        },
+        {
+          "next": "surveyintro",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 1,yes",
+              "arguments": [
+                "{{widgets.q0.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "1,yes"
+            }
+          ]
+        },
+        {
+          "next": "exitsurvey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 2,no",
+              "arguments": [
+                "{{widgets.q0.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "2,no"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.q0.inbound.Body}}",
+        "offset": {
+          "x": 150,
+          "y": 60
+        }
+      }
+    },
+    {
+      "name": "exitsurvey",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "survey_post",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1200,
+          "y": 470
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thank you for your time. We will not contact you in the future."
+      }
+    },
+    {
+      "name": "surveyintro",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "q1",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 190,
+          "y": 860
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thank you for agreeing to take the survey! If you want to skip any of the questions, respond with the word \"skip\" at any time."
+      }
+    },
+    {
+      "name": "q1",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "q1_split",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "survey_post",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 190,
+          "y": 1100
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "What is your favorite animal? Please respond with the number of your answer.\n1. Koala bear\n2. Rattlesnake\n3. Octopus\n4. Cheetah\n5. Chipmunk",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "q1_split",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "q1_error",
+          "event": "noMatch"
+        },
+        {
+          "next": "q2",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 1,2,3,4",
+              "arguments": [
+                "{{widgets.q1.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "1,2,3,4,5"
+            }
+          ]
+        },
+        {
+          "next": "q2",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of skip",
+              "arguments": [
+                "{{widgets.q1.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "skip"
+            }
+          ]
+        },
+        {
+          "next": "help_message",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of help",
+              "arguments": [
+                "{{widgets.q1.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "help"
+            }
+          ]
+        },
+        {
+          "next": "stop_survey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of stop",
+              "arguments": [
+                "{{widgets.q1.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "stop"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.q1.inbound.Body}}",
+        "offset": {
+          "x": -170,
+          "y": 1350
+        }
+      }
+    },
+    {
+      "name": "q1_error",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "q1",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -680,
+          "y": 1350
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "I'm sorry, I did not understand that response. Please respond with the number of your answer."
+      }
+    },
+    {
+      "name": "q2",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "q2_split",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "survey_post",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 180,
+          "y": 1650
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "What is your favorite color?",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "awaymessage",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "inboundmessages_post",
+          "event": "sent"
+        },
+        {
+          "next": "inboundmessages_post",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -700,
+          "y": -390
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thanks for your message! We are not completing surveys at this time."
+      }
+    },
+    {
+      "name": "q3",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "q3_split",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "survey_post",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 170,
+          "y": 2180
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Do you want to answer one more question? Please respond with the number of your answer.\n1. Yes\n2. No",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "q3_split",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "q3_error",
+          "event": "noMatch"
+        },
+        {
+          "next": "q4",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to 1,yes",
+              "arguments": [
+                "{{widgets.q3.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "1,yes"
+            }
+          ]
+        },
+        {
+          "next": "q4",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of skip",
+              "arguments": [
+                "{{widgets.q3.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "skip"
+            }
+          ]
+        },
+        {
+          "next": "endsurvey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 2,no",
+              "arguments": [
+                "{{widgets.q3.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "2,no"
+            }
+          ]
+        },
+        {
+          "next": "stop_survey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to stop",
+              "arguments": [
+                "{{widgets.q3.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "stop"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.q3.inbound.Body}}",
+        "offset": {
+          "x": -80,
+          "y": 2370
+        }
+      }
+    },
+    {
+      "name": "q4",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "q4_split",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "survey_post",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 160,
+          "y": 2590
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "What is your favorite number between 1-100? Please respond by typing in that number.",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "q4_split",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "q4_error",
+          "event": "noMatch"
+        },
+        {
+          "next": "endsurvey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value regex ^[1-9][0-9]?$|^100$",
+              "arguments": [
+                "{{widgets.q4.inbound.Body}}"
+              ],
+              "type": "regex",
+              "value": "^[1-9][0-9]?$|^100$"
+            }
+          ]
+        },
+        {
+          "next": "endsurvey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of skip",
+              "arguments": [
+                "{{widgets.q4.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "skip"
+            }
+          ]
+        },
+        {
+          "next": "stop_survey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of stop",
+              "arguments": [
+                "{{widgets.q4.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "stop"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.q4.inbound.Body}}",
+        "offset": {
+          "x": -100,
+          "y": 2820
+        }
+      }
+    },
+    {
+      "name": "endsurvey",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "survey_post",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 130,
+          "y": 3050
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "This concludes our survey. Thank you for your time!"
+      }
+    },
+    {
+      "name": "q3_error",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "q3",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -700,
+          "y": 2340
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "I'm sorry, I did not understand that response. Please respond with the number of your answer."
+      }
+    },
+    {
+      "name": "q4_error",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "q4",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -680,
+          "y": 2730
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "I'm sorry, I did not understand that response. Please respond with only the number, without punctuation or spaces."
+      }
+    },
+    {
+      "name": "inboundmessages_post",
+      "type": "run-function",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -690,
+          "y": -180
+        },
+        "parameters": [
+          {
+            "value": "{{trigger.message.From}}",
+            "key": "number"
+          },
+          {
+            "value": "newDate ()",
+            "key": "date"
+          },
+          {
+            "value": "{{trigger.message.Body}}",
+            "key": "message"
+          }
+        ],
+        "url": "https://sunglow-marten-1762.twil.io/postinbound"
+      }
+    },
+    {
+      "name": "survey_post",
+      "type": "run-function",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 120,
+          "y": 3280
+        },
+        "parameters": [
+          {
+            "value": "{{widgets.q0.inbound.Body}}",
+            "key": "q0"
+          },
+          {
+            "value": "{{widgets.q1.inbound.Body}}",
+            "key": "q1"
+          },
+          {
+            "value": "{{widgets.q2.inbound.Body}}",
+            "key": "q2"
+          },
+          {
+            "value": "{{widgets.q3.inbound.Body}}",
+            "key": "q3"
+          },
+          {
+            "value": "{{widgets.q4.inbound.Body}}",
+            "key": "q4"
+          }
+        ],
+        "url": "https://sunglow-marten-1762.twil.io/post"
+      }
+    },
+    {
+      "name": "q0_error1",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "q0_split2",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "survey_post",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -310,
+          "y": 60
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "I'm sorry, I did not understand that response. Please respond with the number of your answer.\nDo you want to continue with the survey?\n1. Yes\n2. No",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "q0_split2",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "q0_error2",
+          "event": "noMatch"
+        },
+        {
+          "next": "surveyintro",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 1,yes",
+              "arguments": [
+                "{{widgets.q0_error1.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "1,yes"
+            }
+          ]
+        },
+        {
+          "next": "exitsurvey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 2,no",
+              "arguments": [
+                "{{widgets.q0_error1.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "2,no"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.q0_error1.inbound.Body}}",
+        "offset": {
+          "x": -460,
+          "y": 330
+        }
+      }
+    },
+    {
+      "name": "q0_error2",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "Copy_of_q0_split2",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "survey_post",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -850,
+          "y": 340
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "I'm sorry, I did not understand that response. If you need assistance, please contact XXXX. To continue the survey, respond with 'continue'.",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "Copy_of_q0_split2",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "survey_post",
+          "event": "noMatch"
+        },
+        {
+          "next": "surveyintro",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 1,yes",
+              "arguments": [
+                "{{widgets.q0_error1.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "1,yes"
+            }
+          ]
+        },
+        {
+          "next": "exitsurvey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 2,no",
+              "arguments": [
+                "{{widgets.q0_error1.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "2,no"
+            }
+          ]
+        },
+        {
+          "next": "surveyintro",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of continue",
+              "arguments": [
+                "{{widgets.q0_error1.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "continue"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.q0_error1.inbound.Body}}",
+        "offset": {
+          "x": -1170,
+          "y": 620
+        }
+      }
+    },
+    {
+      "name": "q2_split",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "q2_error",
+          "event": "noMatch"
+        },
+        {
+          "next": "q3",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "q2.inbound.Body",
+              "arguments": [
+                "{{widgets.q2.inbound.Body}}"
+              ],
+              "type": "is_not_blank",
+              "value": "Is Not Blank"
+            }
+          ]
+        },
+        {
+          "next": "stop_survey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of stop",
+              "arguments": [
+                "{{widgets.q2.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "stop"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.q2.inbound.Body}}",
+        "offset": {
+          "x": 80,
+          "y": 1890
+        }
+      }
+    },
+    {
+      "name": "q2_error",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "q2",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -680,
+          "y": 1910
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "I'm sorry, I did not understand that response. Please respond with the number of your answer."
+      }
+    },
+    {
+      "name": "help_message",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "q1_continue",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1210,
+          "y": 1280
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "If you need any assistance, please contact XXXX."
+      }
+    },
+    {
+      "name": "q1_continue",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "q1_return",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "survey_post",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1210,
+          "y": 1490
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Would you like to continue with the survey? Please respond with the number of your answer.\n1. Yes\n2. No",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "q1_return",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "survey_post",
+          "event": "noMatch"
+        },
+        {
+          "next": "q1",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 1,yes",
+              "arguments": [
+                "{{widgets.q1_continue.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "1,yes"
+            }
+          ]
+        },
+        {
+          "next": "exitsurvey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 2,no",
+              "arguments": [
+                "{{widgets.q1_continue.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "2,no"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.q1_continue.inbound.Body}}",
+        "offset": {
+          "x": 1060,
+          "y": 1700
+        }
+      }
+    },
+    {
+      "name": "stop_survey",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "survey_post",
+          "event": "sent"
+        },
+        {
+          "next": "survey_post",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1910,
+          "y": 2220
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thank you for your time. You will not receive any additional messages."
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
