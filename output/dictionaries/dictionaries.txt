@@ -1,0 +1,1 @@
+This folder will contain the new and updated dictionaries created after running the service code. Refer to the readme for instructions on how to run the code. Add translations directly to these files to use when generating translated flows.
