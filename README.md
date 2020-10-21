@@ -115,15 +115,4 @@ This will run a bash script that does the following:
 * If there are no new entries found (i.e. there are no new questions added to the source flow), no new dictionary will be created. If there are new entries found, a new dictionary will be created with existing question fields filled out and new question fields blank. Check logs for additional details about the success of creating the new dictionary.
 
 ### Upload your Twilio flow translations to Twilio:
-Refer to the section 4.2 in the documentation linked [here](https://docs.google.com/document/d/18Paj9S_m51L5W8HlcYM5y0XRe1BPSWeYBs0KUabXvaM/edit#heading=h.hkxewghi8o8g) for details on how to create a Twilio Flow on Twilio Studio with the json output.
-
-### Mimic API calls to test throttling:
-Example:
-* Create a file named.env at the root level (your project )
-* Enter in you google credentials into the .env file as:
-```
-CLIENT_EMAIL=twiliotest@tet.gserviceaccount.com
-PRIVATE_KEY=xxx
-```
-* Update the number of calls in the mock-twilio-handler-events.js file.
-* Run node mock-twilio-handler-events.js in terminal.
+Refer to the section 4.2 in the documentation linked [here] for details on how to create a Twilio Flow on Twilio Studio with the json output.
