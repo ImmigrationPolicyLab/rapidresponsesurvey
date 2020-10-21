@@ -2,6 +2,8 @@
 
 /node_modules
 
+/mock-handler
+
 output/dictionaries/*.json
 
 output/flows/*.json

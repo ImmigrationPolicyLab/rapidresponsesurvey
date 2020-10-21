@@ -6,10 +6,6 @@ const title = process.argv[3];
 const filename = process.argv[4];
 const languages = process.argv[5];
 
-
-console.log("Parent Template Path: ", parentTemplatePath);
-
-console.log("lang", languages);
 const languageList = languages.split(",");
 
 const flowTransation = new TwilioFlowTranslation(parentTemplatePath, languageList);
