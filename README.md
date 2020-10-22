@@ -115,4 +115,6 @@ This will run a bash script that does the following:
 * If there are no new entries found (i.e. there are no new questions added to the source flow), no new dictionary will be created. If there are new entries found, a new dictionary will be created with existing question fields filled out and new question fields blank. Check logs for additional details about the success of creating the new dictionary.
 
 ### Upload your Twilio flow translations to Twilio:
-Refer to the section 4.2 in the documentation linked [here] for details on how to create a Twilio Flow on Twilio Studio with the json output.
+Refer to the section 4.2 in the documentation linked below for details on how to create a Twilio Flow on Twilio Studio with the json output.
+
+https://drive.google.com/file/d/1Emxcbo10MaNHD8uYjI8o2zMkD031ynti/view
