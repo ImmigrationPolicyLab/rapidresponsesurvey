@@ -138,7 +138,7 @@ exports.handler = function (context, event, callback) {
   try {
   	// * May Require Update: Update to reflect the accurate project key
     var jwtClient = new google.auth.JWT(
-      c_email,
+      context.c_email,
       null,
       `-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n`,
       scopes
