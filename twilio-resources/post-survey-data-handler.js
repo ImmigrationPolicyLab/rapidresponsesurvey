@@ -75,7 +75,7 @@ function postData(accessToken, context, event, headers) {
  // * May Require Update: "sheetId" should reflect the name used to store the sheetId
    const appendBody = {
     access_token: accessToken,
-    spreadsheetId: context[clientEmailKeyName],
+    spreadsheetId: context[sheetIdKeyName],
     range: ["A1"],
     resource: getEventResourceValues(headers, event), // Run a function to pair the event data to the right database field
     valueInputOption: "RAW",
