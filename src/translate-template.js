@@ -55,7 +55,7 @@ class TwilioFlowTranslation {
         if (!isValidState) {
           errors.push(`Could not find entry '${name}' in dictionary.`);
         } else if (!hasValidTranslation) {
-          errors.push(`Could not find ${language} translation for entry '${name}' in dictionary.`);
+          errors.push(`Could not find one or more ${language} translations for entry '${name}' in dictionary.`);
         } else {
           // Validated dictionary entry, proceed with translation
           const body = Object.values(dictionary[name].dictionary[language]).join("\n");
@@ -145,7 +145,8 @@ class TwilioFlowTranslation {
   // "Private" helper functions
   static validateTranslationsForEntry(entryObject) {
     for (let key in entryObject) {
-      if (!entryObject[key] || entryObject[key].length <= 1) {
+      if (!entryObject[key] || entryObject[key].length === 0) {
+
         return false;
       }
     }
