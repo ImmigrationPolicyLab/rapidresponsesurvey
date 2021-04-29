@@ -57,6 +57,5 @@ Example:
 3. Update the number of calls in the `mock-twilio-handler-events.js` file.
 4. Run `node mock-twilio-handler-events.js` in terminal.
 
-Errors that show on you console or terminal reflect google api errors.
+Errors that show on your console or terminal reflect google api errors.
 
-### Terminal Notes
