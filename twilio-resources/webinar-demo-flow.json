@@ -1,0 +1,452 @@
+{
+    "description": "DemoWorkshop_102820",
+    "states": [
+        {
+            "name": "Trigger",
+            "type": "trigger",
+            "transitions": [
+                {
+                    "next": "q0",
+                    "event": "incomingMessage"
+                },
+                {
+                    "event": "incomingCall"
+                },
+                {
+                    "next": "q0",
+                    "event": "incomingRequest"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": 130,
+                    "y": -480
+                }
+            }
+        },
+        {
+            "name": "q0",
+            "type": "send-and-wait-for-reply",
+            "transitions": [
+                {
+                    "next": "q0_split",
+                    "event": "incomingMessage"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "timeout"
+                },
+                {
+                    "event": "deliveryFailure"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": 190,
+                    "y": -270
+                },
+                "service": "{{trigger.message.InstanceSid}}",
+                "channel": "{{trigger.message.ChannelSid}}",
+                "from": "{{flow.channel.address}}",
+                "body": "Hello! Thank you for registering for the Staying Connected: Low-Cost Automated WhatsApp Surveys workshop. Before the workshop at 8:00am PT, you can test the low-cost, automated WhatsApp survey here. Do you want to begin the survey? Please respond with the number of your choice.\n1. Yes\n2. No",
+                "timeout": "3600"
+            }
+        },
+        {
+            "name": "q0_split",
+            "type": "split-based-on",
+            "transitions": [
+                {
+                    "next": "q0_error1",
+                    "event": "noMatch"
+                },
+                {
+                    "next": "surveyintro",
+                    "event": "match",
+                    "conditions": [
+                        {
+                            "friendly_name": "If value matches_any_of 1,yes",
+                            "arguments": [
+                                "{{widgets.q0.inbound.Body}}"
+                            ],
+                            "type": "matches_any_of",
+                            "value": "1,1."
+                        }
+                    ]
+                },
+                {
+                    "next": "exitsurvey",
+                    "event": "match",
+                    "conditions": [
+                        {
+                            "friendly_name": "If value matches_any_of 2,no,2.",
+                            "arguments": [
+                                "{{widgets.q0.inbound.Body}}"
+                            ],
+                            "type": "matches_any_of",
+                            "value": "2,2."
+                        }
+                    ]
+                }
+            ],
+            "properties": {
+                "input": "{{widgets.q0.inbound.Body}}",
+                "offset": {
+                    "x": -10,
+                    "y": 30
+                }
+            }
+        },
+        {
+            "name": "exitsurvey",
+            "type": "send-message",
+            "transitions": [
+                {
+                    "next": "survey_post",
+                    "event": "sent"
+                },
+                {
+                    "event": "failed"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": 790,
+                    "y": 260
+                },
+                "service": "{{trigger.message.InstanceSid}}",
+                "channel": "{{trigger.message.ChannelSid}}",
+                "from": "{{flow.channel.address}}",
+                "to": "{{contact.channel.address}}",
+                "body": "Thank you for your time. We will not send any additional questions."
+            }
+        },
+        {
+            "name": "surveyintro",
+            "type": "send-message",
+            "transitions": [
+                {
+                    "next": "q1",
+                    "event": "sent"
+                },
+                {
+                    "event": "failed"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": 90,
+                    "y": 380
+                },
+                "service": "{{trigger.message.InstanceSid}}",
+                "channel": "{{trigger.message.ChannelSid}}",
+                "from": "{{flow.channel.address}}",
+                "to": "{{contact.channel.address}}",
+                "body": "Thank you for agreeing to take the survey! If you want to skip any of the questions, respond with the word \"skip\" at any time. Please note – your responses may be displayed anonymously in a database during the workshop, without any personally identifiable information, to demonstrate the data collection method."
+            }
+        },
+        {
+            "name": "q1",
+            "type": "send-and-wait-for-reply",
+            "transitions": [
+                {
+                    "next": "q1_split",
+                    "event": "incomingMessage"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "timeout"
+                },
+                {
+                    "event": "deliveryFailure"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": 100,
+                    "y": 660
+                },
+                "service": "{{trigger.message.InstanceSid}}",
+                "channel": "{{trigger.message.ChannelSid}}",
+                "from": "{{flow.channel.address}}",
+                "body": "A multiple-choice question would look like this: What is most exciting to you about low-cost automated WhatsApp surveys? Please pick one and respond with the number of your answer.\n1. Lower data collection costs\n2. Automation\n3. Easy replicability\n4. Maintaining a sample over time\n5. Surveying over WhatsApp specifically",
+                "timeout": "3600"
+            }
+        },
+        {
+            "name": "q1_split",
+            "type": "split-based-on",
+            "transitions": [
+                {
+                    "next": "q1_error",
+                    "event": "noMatch"
+                },
+                {
+                    "next": "q2",
+                    "event": "match",
+                    "conditions": [
+                        {
+                            "friendly_name": "If value matches_any_of 1,2,3,4,5",
+                            "arguments": [
+                                "{{widgets.q1.inbound.Body}}"
+                            ],
+                            "type": "matches_any_of",
+                            "value": "1,2,3,4,5,1.,2.,3.,4.,5."
+                        }
+                    ]
+                },
+                {
+                    "next": "q2",
+                    "event": "match",
+                    "conditions": [
+                        {
+                            "friendly_name": "If value matches_any_of skip",
+                            "arguments": [
+                                "{{widgets.q1.inbound.Body}}"
+                            ],
+                            "type": "matches_any_of",
+                            "value": "skip"
+                        }
+                    ]
+                }
+            ],
+            "properties": {
+                "input": "{{widgets.q1.inbound.Body}}",
+                "offset": {
+                    "x": -50,
+                    "y": 940
+                }
+            }
+        },
+        {
+            "name": "q2",
+            "type": "send-and-wait-for-reply",
+            "transitions": [
+                {
+                    "next": "q2_split",
+                    "event": "incomingMessage"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "timeout"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "deliveryFailure"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": 70,
+                    "y": 1240
+                },
+                "service": "{{trigger.message.InstanceSid}}",
+                "channel": "{{trigger.message.ChannelSid}}",
+                "from": "{{flow.channel.address}}",
+                "body": "Another open-ended question: Do you have any questions for the workshop presenters? If so, you can send it to us here.",
+                "timeout": "3600"
+            }
+        },
+        {
+            "name": "q2_split",
+            "type": "split-based-on",
+            "transitions": [
+                {
+                    "next": "q4_2",
+                    "event": "noMatch"
+                },
+                {
+                    "next": "endsurvey",
+                    "event": "match",
+                    "conditions": [
+                        {
+                            "friendly_name": "isnotblank",
+                            "arguments": [
+                                "{{widgets.q2.inbound.Body}}"
+                            ],
+                            "type": "is_not_blank",
+                            "value": "Is Not Blank"
+                        }
+                    ]
+                },
+                {
+                    "next": "endsurvey",
+                    "event": "match",
+                    "conditions": [
+                        {
+                            "friendly_name": "If value matches_any_of skip,Skip,SKIP",
+                            "arguments": [
+                                "{{widgets.q2.inbound.Body}}"
+                            ],
+                            "type": "matches_any_of",
+                            "value": "skip"
+                        }
+                    ]
+                }
+            ],
+            "properties": {
+                "input": "{{widgets.q2.inbound.Body}}",
+                "offset": {
+                    "x": 0,
+                    "y": 1480
+                }
+            }
+        },
+        {
+            "name": "survey_post",
+            "type": "run-function",
+            "transitions": [
+                {
+                    "event": "success"
+                },
+                {
+                    "event": "fail"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": 80,
+                    "y": 2090
+                },
+                "parameters": [
+                    {
+                        "value": "{{widgets.q0.inbound.Body}}",
+                        "key": "q0"
+                    },
+                    {
+                        "value": "{{widgets.q1.inbound.Body}}",
+                        "key": "q1"
+                    },
+                    {
+                        "value": "{{widgets.q2.inbound.Body}}",
+                        "key": "q2"
+                    },
+                    {
+                        "value": "{{widgets.q0.outbound.To}}",
+                        "key": "number"
+                    },
+                    {
+                        "value": "newdate()",
+                        "key": "date"
+                    }
+                ],
+                "url": "https://lava-goshawk-7179.twil.io/exportpost"
+            }
+        },
+        {
+            "name": "q0_error1",
+            "type": "send-and-wait-for-reply",
+            "transitions": [
+                {
+                    "next": "surveyintro",
+                    "event": "incomingMessage"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "timeout"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "deliveryFailure"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": -470,
+                    "y": 30
+                },
+                "service": "{{trigger.message.InstanceSid}}",
+                "channel": "{{trigger.message.ChannelSid}}",
+                "from": "{{flow.channel.address}}",
+                "body": "I'm sorry, I did not understand that response. Please respond with the number of your answer.\nDo you want to start the survey?\n1. Yes\n2. No",
+                "timeout": "3600"
+            }
+        },
+        {
+            "name": "q4_2",
+            "type": "send-and-wait-for-reply",
+            "transitions": [
+                {
+                    "next": "endsurvey",
+                    "event": "incomingMessage"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "timeout"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "deliveryFailure"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": -500,
+                    "y": 1490
+                },
+                "service": "{{trigger.message.InstanceSid}}",
+                "channel": "{{trigger.message.ChannelSid}}",
+                "from": "{{flow.channel.address}}",
+                "body": "I'm sorry, I did not understand that response. Do you have any questions for the workshop presenters? If so, you can send it to us here.",
+                "timeout": "3600"
+            }
+        },
+        {
+            "name": "endsurvey",
+            "type": "send-and-wait-for-reply",
+            "transitions": [
+                {
+                    "next": "survey_post",
+                    "event": "incomingMessage"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "timeout"
+                },
+                {
+                    "next": "survey_post",
+                    "event": "deliveryFailure"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": 80,
+                    "y": 1810
+                },
+                "service": "{{trigger.message.InstanceSid}}",
+                "channel": "{{trigger.message.ChannelSid}}",
+                "from": "{{flow.channel.address}}",
+                "body": "Thanks for testing out a WhatsApp automated survey. We look forward to seeing you at the workshop soon!",
+                "timeout": "3600"
+            }
+        },
+        {
+            "name": "q1_error",
+            "type": "send-message",
+            "transitions": [
+                {
+                    "next": "q1",
+                    "event": "sent"
+                },
+                {
+                    "event": "failed"
+                }
+            ],
+            "properties": {
+                "offset": {
+                    "x": -500,
+                    "y": 950
+                },
+                "service": "{{trigger.message.InstanceSid}}",
+                "channel": "{{trigger.message.ChannelSid}}",
+                "from": "{{flow.channel.address}}",
+                "to": "{{contact.channel.address}}",
+                "body": "I'm sorry, I did not understand that response. Please respond with the number of your answer."
+            }
+        }
+    ],
+    "initial_state": "Trigger",
+    "flags": {
+        "allow_concurrent_calls": true
+    }
+}

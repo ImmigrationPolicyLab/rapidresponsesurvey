@@ -1,4 +1,6 @@
 // This code in intended to run as a Twilio function during a Twilio Flow execution
+const clientEmailKeyName = "client_email";
+const sheetIdKeyName = "sheetId";
 
 const {google} = require("googleapis");
 const sheets = google.sheets('v4');
@@ -38,7 +40,7 @@ function getHeaders(accessToken, context) {
   // "sheetId" should reflect the name used to store the sheetId
   const getBody = {
     access_token: accessToken,
-    spreadsheetId: context.sheetId,
+    spreadsheetId: context[sheetIdKeyName],
     range: ["A1:Z1"]
   };
   return new Promise((resolve, reject) => {
@@ -73,7 +75,7 @@ function postData(accessToken, context, event, headers) {
  // * May Require Update: "sheetId" should reflect the name used to store the sheetId
    const appendBody = {
     access_token: accessToken,
-    spreadsheetId: context.sheetId,
+    spreadsheetId: context[sheetIdKeyName],
     range: ["A1"],
     resource: getEventResourceValues(headers, event), // Run a function to pair the event data to the right database field
     valueInputOption: "RAW",
@@ -138,7 +140,7 @@ exports.handler = function (context, event, callback) {
   try {
   	// * May Require Update: Update to reflect the accurate project key
     var jwtClient = new google.auth.JWT(
-      context.c_email,
+      context[clientEmailKeyName],
       null,
       `-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n`,
       scopes
